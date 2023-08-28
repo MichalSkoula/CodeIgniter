@@ -119,6 +119,13 @@ class CI_Log {
 	 */
 	protected $_ignored_messages = array();
 
+	/**
+	 * Append current URL to the log message
+	 *
+	 * @var bool
+	 */
+	protected $_append_url = FALSE;
+
 	// --------------------------------------------------------------------
 
 	/**
@@ -168,6 +175,11 @@ class CI_Log {
 		if (isset($config['log_ignored_messages']) && is_array($config['log_ignored_messages']))
 		{
 			$this->_ignored_messages = $config['log_ignored_messages'];
+		}
+
+		if (isset($config['log_append_url']) && is_bool($config['log_append_url']))
+		{
+			$this->_append_url = $config['log_append_url'];
 		}
 	}
 
@@ -239,7 +251,12 @@ class CI_Log {
 			$date = date($this->_date_fmt);
 		}
 
-		$message .= $this->_format_line($level, $date, $msg);
+		$append_url = null;
+		if ($this->_append_url && php_sapi_name() !== 'cli' && isset($_SERVER['HTTP_HOST']) && isset($_SERVER['REQUEST_URI'])) {
+			$append_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+		}
+
+		$message .= $this->_format_line($level, $date, $msg, $append_url);
 
 		for ($written = 0, $length = self::strlen($message); $written < $length; $written += $result)
 		{
@@ -271,11 +288,12 @@ class CI_Log {
 	 * @param	string	$level 	The error level
 	 * @param	string	$date 	Formatted date string
 	 * @param	string	$message 	The log message
+	 * @param	?string $append_url url to be appended
 	 * @return	string	Formatted log line with a new line character at the end
 	 */
-	protected function _format_line($level, $date, $message)
+	protected function _format_line($level, $date, $message, $append_url)
 	{
-		return $level.' - '.$date.' --> '.$message.PHP_EOL;
+		return $level.' - '.$date.' --> '.$message.($append_url ? ' URL: '.$append_url.'' : '').PHP_EOL;
 	}
 
 	// --------------------------------------------------------------------

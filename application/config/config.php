@@ -274,6 +274,13 @@ $config['log_date_format'] = 'Y-m-d H:i:s';
 $config['log_ignored_messages'] = array();
 
 /*
+| Append current URL to the log message
+|--------------------------------------------------------------------------
+|
+*/
+$config['log_append_url'] = FALSE;
+
+/*
 |--------------------------------------------------------------------------
 | Error Views Directory Path
 |--------------------------------------------------------------------------
