@@ -201,21 +201,25 @@ class CI_Log {
 			return FALSE;
 		}
 
+		$level = strtoupper($level);
+		if (( ! isset($this->_levels[$level]) OR ($this->_levels[$level] > $this->_threshold)) && ! isset($this->_threshold_array[$this->_levels[$level]]))
+		{
+			return FALSE;
+		}
+
+		// Get current url
+		$append_url = null;
+		if ($this->_append_url && php_sapi_name() !== 'cli' && isset($_SERVER['HTTP_HOST']) && isset($_SERVER['REQUEST_URI'])) {
+			$append_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+		}
+
 		// Ignored log messages?
 		foreach ($this->_ignored_messages as $ignored_msg)
 		{
-			if (stripos($msg, $ignored_msg) !== FALSE)
+			if (stripos($msg, $ignored_msg) !== FALSE || ($append_url !== null && stripos($append_url, $ignored_msg) !== FALSE))
 			{
 				return FALSE;
 			}
-		}
-
-		$level = strtoupper($level);
-
-		if (( ! isset($this->_levels[$level]) OR ($this->_levels[$level] > $this->_threshold))
-			&& ! isset($this->_threshold_array[$this->_levels[$level]]))
-		{
-			return FALSE;
 		}
 
 		$filepath = $this->_log_path.$this->_log_filename;
@@ -249,11 +253,6 @@ class CI_Log {
 		else
 		{
 			$date = date($this->_date_fmt);
-		}
-
-		$append_url = null;
-		if ($this->_append_url && php_sapi_name() !== 'cli' && isset($_SERVER['HTTP_HOST']) && isset($_SERVER['REQUEST_URI'])) {
-			$append_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http').'://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
 		}
 
 		$message .= $this->_format_line($level, $date, $msg, $append_url);
