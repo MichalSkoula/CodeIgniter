@@ -153,6 +153,7 @@ class CI_Config {
 						return FALSE;
 					}
 
+					log_message('error', 'Your '.$file_path.' file does not appear to contain a valid configuration array.');
 					show_error('Your '.$file_path.' file does not appear to contain a valid configuration array.');
 				}
 
@@ -183,6 +184,7 @@ class CI_Config {
 			return FALSE;
 		}
 
+		log_message('error', 'The configuration file '.$file.'.php does not exist.');
 		show_error('The configuration file '.$file.'.php does not exist.');
 	}
 
