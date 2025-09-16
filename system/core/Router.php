@@ -59,6 +59,13 @@ class CI_Router {
 	public $config;
 
 	/**
+	 * CI_URI class object
+	 *
+	 * @var	object
+	 */
+	public $uri;
+
+	/**
 	 * List of routes
 	 *
 	 * @var	array
@@ -285,39 +292,52 @@ class CI_Router {
 
 	/**
 	 * Set default controller
+	 * https://stackoverflow.com/questions/35620564/how-to-routing-controllers-in-sub-folders-using-codeigniter-3
+	 * CI3 cannot have directory/controller as default_controller
 	 *
 	 * @return	void
 	 */
 	protected function _set_default_controller()
-	{
-		if (empty($this->default_controller))
-		{
-			show_error('Unable to determine what should be displayed. A default route has not been specified in the routing file.');
-		}
+    {
+        if (empty($this->default_controller)) {
+            show_error('Unable to determine what should be displayed. A default route has not been specified in the routing file.');
+        }
+        // Is the method being specified?
+        if (sscanf($this->default_controller, '%[^/]/%s', $class, $method) !== 2) {
+            $method = 'index';
+        }
 
-		// Is the method being specified?
-		if (sscanf($this->default_controller, '%[^/]/%s', $class, $method) !== 2)
-		{
-			$method = 'index';
-		}
+        // This is what I added, checks if the class is a directory
+        if (is_dir(APPPATH . 'controllers/' . $class)) {
+            // Set the class as the directory
 
-		if ( ! file_exists(APPPATH.'controllers/'.$this->directory.ucfirst($class).'.php'))
-		{
-			// This will trigger 404 later
-			return;
-		}
+            $this->set_directory($class);
 
-		$this->set_class($class);
-		$this->set_method($method);
+            // $method is the class
 
-		// Assign routed segments, index starting from 1
-		$this->uri->rsegments = array(
-			1 => $class,
-			2 => $method
-		);
+            $class = $method;
 
-		log_message('debug', 'No URI present. Default controller set.');
-	}
+            // Re check for slash if method has been set
+
+            if (sscanf($method, '%[^/]/%s', $class, $method) !== 2) {
+                $method = 'index';
+            }
+        }
+
+        if (! file_exists(APPPATH . 'controllers/' . $this->directory . ucfirst((string) $class) . '.php')) {
+            // This will trigger 404 later
+
+            return;
+        }
+        $this->set_class($class);
+        $this->set_method($method);
+        // Assign routed segments, index starting from 1
+        $this->uri->rsegments = [
+            1 => $class,
+            2 => $method,
+        ];
+        log_message('debug', 'No URI present. Default controller set.');
+    }
 
 	// --------------------------------------------------------------------
 
