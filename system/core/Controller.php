@@ -60,9 +60,9 @@ class CI_Controller {
 	private static $instance;
 
 	/**
-	 * CI_Loader
+	 * CI_Loader (typed as an object to allow extending CI_Loader to MY_Loader)
 	 *
-	 * @var	CI_Loader
+	 * @var	object
 	 */
 	public $load;
 
