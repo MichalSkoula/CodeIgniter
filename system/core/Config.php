@@ -195,7 +195,7 @@ class CI_Config {
 	 *
 	 * @param	string	$item	Config item name
 	 * @param	string	$index	Index name
-	 * @return	string|null	The configuration item or NULL if the item doesn't exist
+	 * @return	string|array|null	The configuration item or NULL if the item doesn't exist
 	 */
 	public function item($item, $index = '')
 	{
