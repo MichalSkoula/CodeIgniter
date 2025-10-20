@@ -702,6 +702,16 @@ class CI_Image_lib {
 	 */
 	public function is_animated_webp($path)
 	{
+		// Strip ./ prefix if present
+		if (str_starts_with((string) $path, './')) {
+			$path = substr((string) $path, 2);
+		}
+
+		// Quick check - must be .webp file
+		if (!str_ends_with(strtolower($path), '.webp')) {
+			return FALSE;
+		}
+
 		if (!file_exists($path)) {
 			return FALSE;
 		}
