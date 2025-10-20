@@ -346,6 +346,13 @@ class CI_Image_lib {
 	public $file_permissions = 0644;
 
 	/**
+	 * Flag to indicate if source is animated WebP
+	 *
+	 * @var bool
+	 */
+	private $is_animated_webp = FALSE;
+
+	/**
 	 * Name of function to create image
 	 *
 	 * @var string
@@ -675,8 +682,135 @@ class CI_Image_lib {
 	 */
 	public function resize()
 	{
+		// Check if source is animated WebP - handle with Imagick entirely
+		if ($this->image_type === 18 && $this->is_animated_webp($this->full_src_path))
+		{
+			return $this->_resize_animated_webp_imagick();
+		}
+		
 		$protocol = ($this->image_library === 'gd2') ? 'image_process_gd' : 'image_process_'.$this->image_library;
 		return $this->$protocol('resize');
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Check if file is animated WebP
+	 *
+	 * @param string $path
+	 * @return bool
+	 */
+	public function is_animated_webp($path)
+	{
+		if (!file_exists($path)) {
+			return FALSE;
+		}
+
+		$fp = @fopen($path, 'rb');
+		if ($fp === FALSE)
+		{
+			return FALSE;
+		}
+
+		// Read enough data to check for animation
+		$data = fread($fp, 1024);
+		fclose($fp);
+
+		if (strlen($data) < 16) {
+			return FALSE;
+		}
+
+		// Check RIFF header
+		if (substr($data, 0, 4) !== 'RIFF') {
+			return FALSE;
+		}
+
+		// Check WEBP signature
+		if (substr($data, 8, 4) !== 'WEBP') {
+			return FALSE;
+		}
+
+		// Check for ANIM chunk (animation) or ANMF chunk (animation frame)
+		// These indicate animated WebP
+		return (strpos($data, 'ANIM') !== FALSE || strpos($data, 'ANMF') !== FALSE);
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Resize animated WebP using Imagick
+	 *
+	 * @return bool
+	 */
+	private function _resize_animated_webp_imagick()
+	{
+		if ( ! extension_loaded('imagick'))
+		{
+			$this->set_error('Imagick extension required for animated WebP');
+			return FALSE;
+		}
+
+		try
+		{
+			$imagick = new Imagick($this->full_src_path);
+			
+			// Get only the first frame
+			$imagick->setIteratorIndex(0);
+			
+			// Calculate dimensions
+			$orig_width = $imagick->getImageWidth();
+			$orig_height = $imagick->getImageHeight();
+			
+			$this->orig_width = $orig_width;
+			$this->orig_height = $orig_height;
+			
+			// Use existing width/height or calculate
+			if ($this->width == '' && $this->height == '')
+			{
+				$this->width = $orig_width;
+				$this->height = $orig_height;
+			}
+			elseif ($this->width == '')
+			{
+				$this->width = intval($orig_width * $this->height / $orig_height);
+			}
+			elseif ($this->height == '')
+			{
+				$this->height = intval($orig_height * $this->width / $orig_width);
+			}
+			
+			// Maintain aspect ratio if needed
+			if ($this->maintain_ratio === TRUE && ($this->width != $orig_width || $this->height != $orig_height))
+			{
+				$this->image_reproportion();
+			}
+			
+			// Resize the image
+			$imagick->resizeImage($this->width, $this->height, Imagick::FILTER_LANCZOS, 1);
+			$imagick->setImageFormat('webp');
+			$imagick->setImageCompressionQuality($this->quality);
+			
+			// Determine output path
+			$output_path = ($this->new_image == '') ? $this->full_src_path : $this->full_dst_path;
+			
+			// Save
+			$success = $imagick->writeImage($output_path);
+			
+			$imagick->clear();
+			$imagick->destroy();
+			
+			if ($success && $this->dynamic_output !== TRUE)
+			{
+				chmod($output_path, $this->file_permissions);
+			}
+			
+			return $success;
+		}
+		catch (Exception $e)
+		{
+			$this->set_error('Imagick error: ' . $e->getMessage());
+			return FALSE;
+		}
 	}
 
 	// --------------------------------------------------------------------
@@ -691,6 +825,13 @@ class CI_Image_lib {
 	 */
 	public function crop()
 	{
+		// Animated WebP not supported by GD
+		if ($this->image_type === 18 && $this->is_animated_webp($this->full_src_path))
+		{
+			$this->set_error('Animated WebP not supported for crop operation');
+			return FALSE;
+		}
+		
 		$protocol = ($this->image_library === 'gd2') ? 'image_process_gd' : 'image_process_'.$this->image_library;
 		return $this->$protocol('crop');
 	}
@@ -707,6 +848,13 @@ class CI_Image_lib {
 	 */
 	public function rotate()
 	{
+		// Animated WebP not supported by GD
+		if ($this->image_type === 18 && $this->is_animated_webp($this->full_src_path))
+		{
+			$this->set_error('Animated WebP not supported for rotate operation');
+			return FALSE;
+		}
+		
 		// Allowed rotation values
 		$degs = array(90, 180, 270, 'vrt', 'hor');
 
@@ -1159,6 +1307,13 @@ class CI_Image_lib {
 			return FALSE;
 		}
 
+		// Check for animated WebP - not supported by GD
+		if ($this->image_type === 18 && $this->is_animated_webp($this->full_src_path))
+		{
+			$this->set_error('Animated WebP not supported for overlay watermark operation');
+			return FALSE;
+		}
+
 		// Fetch source image properties
 		$this->get_image_properties();
 
@@ -1267,6 +1422,13 @@ class CI_Image_lib {
 	 */
 	public function text_watermark()
 	{
+		// Check for animated WebP - not supported by GD
+		if ($this->image_type === 18 && $this->is_animated_webp($this->full_src_path))
+		{
+			$this->set_error('Animated WebP not supported for text watermark operation');
+			return FALSE;
+		}
+
 		if ( ! ($src_img = $this->image_create_gd()))
 		{
 			return FALSE;
@@ -1482,6 +1644,13 @@ class CI_Image_lib {
 				if ( ! function_exists('imagecreatefromwebp'))
 				{
 					$this->set_error(array('imglib_unsupported_imagecreate', 'imglib_webp_not_supported'));
+					return FALSE;
+				}
+
+				// Check if animated WebP - GD cannot handle these at all
+				if ($this->is_animated_webp($path))
+				{
+					$this->set_error(array('imglib_unsupported_imagecreate', 'Animated WebP not supported by GD - use Imagick'));
 					return FALSE;
 				}
 
