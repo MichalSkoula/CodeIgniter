@@ -254,12 +254,15 @@ class CI_Profiler {
 				$show_hide_js = '(<span style="cursor: pointer;" onclick="var s=document.getElementById(\'ci_profiler_queries_db_'.$count.'\').style;s.display=s.display==\'none\'?\'\':\'none\';this.innerHTML=this.innerHTML==\''.$this->CI->lang->line('profiler_section_show').'\'?\''.$this->CI->lang->line('profiler_section_hide').'\':\''.$this->CI->lang->line('profiler_section_show').'\';">'.$this->CI->lang->line('profiler_section_show').'</span>)';
 			}
 
+			$sort_toggle_js = '(<span style="cursor: pointer;" onclick="var table=document.getElementById(\'ci_profiler_queries_db_'.$count.'\');var tbody=table.getElementsByTagName(\'tbody\')[0];if(!table.hasAttribute(\'data-original-html\')){table.setAttribute(\'data-original-html\', tbody.innerHTML);};if(this.innerHTML==\''.$this->CI->lang->line('profiler_sort_by_time').'\'){var rows=Array.from(tbody.getElementsByTagName(\'tr\'));rows.sort(function(a,b){var aTime=parseFloat(a.cells[0].textContent.trim());var bTime=parseFloat(b.cells[0].textContent.trim());return bTime-aTime;});tbody.innerHTML=\'\';for(var i=0;i<rows.length;i++){tbody.appendChild(rows[i]);};this.innerHTML=\''.$this->CI->lang->line('profiler_sort_by_order').'\';}else{tbody.innerHTML=table.getAttribute(\'data-original-html\');this.innerHTML=\''.$this->CI->lang->line('profiler_sort_by_time').'\';};">'.$this->CI->lang->line('profiler_sort_by_time').'</span>)';
+
 			$output .= '<fieldset style="border:1px solid #0000FF;padding:6px 10px 10px 10px;margin:20px 0 20px 0;background-color:#eee;">'
 				."\n"
 				.'<legend style="color:#0000FF;">&nbsp;&nbsp;'.$this->CI->lang->line('profiler_database')
 				.':&nbsp; '.$db->database.' ('.$name.')&nbsp;&nbsp;&nbsp;'.$this->CI->lang->line('profiler_queries')
-				.': '.count($db->queries).' ('.$total_time.')&nbsp;&nbsp;'.$show_hide_js."</legend>\n\n\n"
-				.'<table style="width:100%;'.$hide_queries.'" id="ci_profiler_queries_db_'.$count."\">\n";
+				.': '.count($db->queries).' ('.$total_time.')&nbsp;&nbsp;'.$show_hide_js.'&nbsp;&nbsp;'.$sort_toggle_js."</legend>\n\n\n"
+				.'<table style="width:100%;'.$hide_queries.'" id="ci_profiler_queries_db_'.$count."\">\n"
+				.'<tbody>'."\n";
 
 			if (count($db->queries) === 0)
 			{
@@ -284,7 +287,7 @@ class CI_Profiler {
 				}
 			}
 
-			$output .= "</table>\n</fieldset>";
+			$output .= "</tbody>\n</table>\n</fieldset>";
 			$count++;
 		}
 

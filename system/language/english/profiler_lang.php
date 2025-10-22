@@ -59,3 +59,5 @@ $lang['profiler_no_profiles'] = 'No Profile data - all Profiler sections have be
 $lang['profiler_section_hide'] = 'Hide';
 $lang['profiler_section_show'] = 'Show';
 $lang['profiler_seconds'] = 'seconds';
+$lang['profiler_sort_by_time'] = 'Sort by Time';
+$lang['profiler_sort_by_order'] = 'Sort by Order';
