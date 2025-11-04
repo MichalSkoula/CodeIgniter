@@ -2492,8 +2492,8 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 						continue;
 					}
 
-					// Prevent regex compilation failure on very long conditions (PCRE limit is around 64KB-256KB depending on system)
-					if (strlen($conditions[$ci]) > 50000)
+					// Prevent regex compilation failure on very long conditions (PCRE limit varies, safe limit is ~30KB)
+					if (strlen($conditions[$ci]) > 30000)
 					{
 						continue;
 					}
