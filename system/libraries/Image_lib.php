@@ -86,6 +86,13 @@ class CI_Image_lib {
 	public $new_image		= '';
 
 	/**
+	 * Destination image name
+	 *
+	 * @var string
+	 */
+	public $dest_image		= '';
+
+	/**
 	 * Image width
 	 *
 	 * @var int
