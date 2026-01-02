@@ -1,4 +1,4 @@
-*This is a fork of the 'develop' branch from https://github.com/bcit-ci/CodeIgniter, incorporating a few of my own fixes, mainly for PHP8 and WebP support. Some of my fixes also exist in the form of unmerged pull requests in the original repo.*
+*This is a fork of the 'develop' branch from https://github.com/bcit-ci/CodeIgniter, incorporating a few of my own fixes, mainly for PHP8.2 and WebP support. Some of my fixes also exist in the form of unmerged pull requests in the original repo.*
 
 ###################
 What is CodeIgniter
