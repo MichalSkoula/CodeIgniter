@@ -568,7 +568,7 @@ abstract class CI_DB_driver {
 	 * will raise an error.
 	 *
 	 * @param	string	$sql
-	 * @param	array	$binds = FALSE		An array of binding data
+	 * @param	mixed	$binds = FALSE		An array of binding data
 	 * @param	bool	$return_object = NULL
 	 * @return	mixed
 	 */

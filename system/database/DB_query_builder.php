@@ -1516,7 +1516,7 @@ abstract class CI_DB_query_builder extends CI_DB_driver {
 	 * Allows the where clause, limit and offset to be added directly
 	 *
 	 * @param	string	$table
-	 * @param	string	$where
+	 * @param	mixed	$where
 	 * @param	int	$limit
 	 * @param	int	$offset
 	 * @return	CI_DB_result
