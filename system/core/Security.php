@@ -175,7 +175,7 @@ class CI_Security {
 		$this->charset = $charset;
 
 		// Is CSRF protection enabled?
-		if (config_item('csrf_protection') && ! is_cli())
+		if ($this->is_enabled())
 		{
 			// CSRF config
 			foreach (array('csrf_expire', 'csrf_token_name', 'csrf_cookie_name') as $key)
@@ -198,6 +198,11 @@ class CI_Security {
 		}
 
 		log_message('info', 'Security Class Initialized');
+	}
+
+    public function is_enabled()
+	{
+	    return config_item('csrf_protection') && ! is_cli();
 	}
 
 	// --------------------------------------------------------------------
@@ -232,6 +237,12 @@ class CI_Security {
 		$valid = isset($_POST[$this->_csrf_token_name], $_COOKIE[$this->_csrf_cookie_name])
 			&& is_string($_POST[$this->_csrf_token_name]) && is_string($_COOKIE[$this->_csrf_cookie_name])
 			&& hash_equals($_POST[$this->_csrf_token_name], $_COOKIE[$this->_csrf_cookie_name]);
+
+        if (! $valid) {
+		    $valid = isset($_SERVER['HTTP_X_CSRF_TOKEN'], $_COOKIE[$this->_csrf_cookie_name])
+			    && is_string($_SERVER['HTTP_X_CSRF_TOKEN']) && is_string($_COOKIE[$this->_csrf_cookie_name])
+				&& hash_equals($_SERVER['HTTP_X_CSRF_TOKEN'], $_COOKIE[$this->_csrf_cookie_name]);
+		}
 
 		// We kill this since we're done and we don't want to pollute the _POST array
 		unset($_POST[$this->_csrf_token_name]);
@@ -317,7 +328,13 @@ class CI_Security {
 	 */
 	public function csrf_show_error()
 	{
-		show_error('The action you have requested is not allowed.', 403);
+	    log_message('error', 'CSRF token not sent');
+
+	    if (config_item('csrf_protection_test_only')) {
+		    return;
+		}
+
+        show_error('The action you have requested is not allowed.', 403);
 	}
 
 	// --------------------------------------------------------------------
