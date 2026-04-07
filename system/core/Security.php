@@ -100,6 +100,8 @@ class CI_Security {
 	 */
 	protected $_csrf_hash;
 
+    protected $_csrf_hash_origin;
+
 	/**
 	 * CSRF Expire time
 	 *
@@ -244,6 +246,9 @@ class CI_Security {
 				&& hash_equals($_SERVER['HTTP_X_CSRF_TOKEN'], $_COOKIE[$this->_csrf_cookie_name]);
 		}
 
+		// Save POST token value before removing it (needed for error logging)
+		$post_token = $_POST[$this->_csrf_token_name] ?? NULL;
+
 		// We kill this since we're done and we don't want to pollute the _POST array
 		unset($_POST[$this->_csrf_token_name]);
 
@@ -253,6 +258,7 @@ class CI_Security {
 			// Nothing should last forever
 			unset($_COOKIE[$this->_csrf_cookie_name]);
 			$this->_csrf_hash = NULL;
+			$this->_csrf_hash_origin = NULL;
 		}
 
 		$this->_csrf_set_hash();
@@ -260,7 +266,7 @@ class CI_Security {
 
 		if ($valid !== TRUE)
 		{
-			$this->csrf_show_error();
+			$this->csrf_show_error($post_token);
 		}
 
 		log_message('info', 'CSRF token verified');
@@ -321,21 +327,75 @@ class CI_Security {
 
 	// --------------------------------------------------------------------
 
+    public function get_request_info($post_token = NULL)
+	{
+	    $session_cookie_name = config_item('sess_cookie_name');
+		$post_keys = array_keys($_POST);
+		sort($post_keys);
+		$tokens = [
+		    'csrf_token_origin=' . $this->_csrf_hash_origin,
+			'post=' . ($post_token ?? 'no'),
+			'header=' . ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? 'no'),
+			'cookie=' . ($_COOKIE[$this->_csrf_cookie_name] ?? 'no'),
+			'post_keys=' . ($post_keys ? implode('|', $post_keys) : 'no'),
+			'ip=' . ($_SERVER['REMOTE_ADDR'] ?? 'no'),
+			'referer=' . ($_SERVER['HTTP_REFERER'] ?? 'no'),
+			'origin=' . ($_SERVER['HTTP_ORIGIN'] ?? 'no'),
+			'uri=' . ($_SERVER['REQUEST_URI'] ?? 'no'),
+			'content_type=' . ($_SERVER['CONTENT_TYPE'] ?? 'no'),
+			'requested_with=' . ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? 'no'),
+			'sec_fetch_site=' . ($_SERVER['HTTP_SEC_FETCH_SITE'] ?? 'no'),
+			'sec_fetch_mode=' . ($_SERVER['HTTP_SEC_FETCH_MODE'] ?? 'no'),
+			'session_cookie_hash=' . ($session_cookie_name && isset($_COOKIE[$session_cookie_name]) ? hash('sha256', 'trochu_opeprime-' . $_COOKIE[$session_cookie_name]) : 'no'),
+			'hostname=' . gethostname(),
+			'user_agent=' . ($_SERVER['HTTP_USER_AGENT'] ?? 'no'),
+		];
+		return implode(', ', $tokens);
+	}
+
 	/**
 	 * Show CSRF Error
 	 *
 	 * @return	void
 	 */
-	public function csrf_show_error()
+	public function csrf_show_error($post_token = NULL)
 	{
-	    log_message('error', 'CSRF token not sent');
-
-	    if (config_item('csrf_protection_test_only')) {
-		    return;
+	    if ($this->_should_log_invalid_csrf_request()) {
+		    log_message('error', 'CSRF token invalid (' . $this->get_request_info($post_token) . ')');
 		}
 
-        show_error('The action you have requested is not allowed.', 403);
+        if (! config_item('csrf_protection_test_only')) {
+		    show_error('The action you have requested is not allowed.', 403);
+		}
 	}
+
+    private function _should_log_invalid_csrf_request(): bool
+    {
+        if (! config_item('csrf_protection_log_invalid_only_base_url_host')) {
+            return false;
+        }
+
+        $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+        if ($host === '') {
+            return false;
+        }
+
+        $base_url_host = strtolower((string) parse_url((string) config_item('base_url'), PHP_URL_HOST));
+        if ($base_url_host === '') {
+            return false;
+        }
+
+        if (explode(':', $host, 2)[0] !== $base_url_host) {
+            return false;
+        }
+
+        $uri = (string) parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH);
+        if ($uri === '/') {
+            return false;
+        }
+
+        return preg_match('#^/\d#', $uri) !== 1;
+    }
 
 	// --------------------------------------------------------------------
 
@@ -1091,9 +1151,11 @@ class CI_Security {
 			if (isset($_COOKIE[$this->_csrf_cookie_name]) && is_string($_COOKIE[$this->_csrf_cookie_name])
 				&& preg_match('#^[0-9a-f]{32}$#iS', $_COOKIE[$this->_csrf_cookie_name]) === 1)
 			{
+			    $this->_csrf_hash_origin = 'cookie';
 				return $this->_csrf_hash = $_COOKIE[$this->_csrf_cookie_name];
 			}
 
+            $this->_csrf_hash_origin = 'newly_generated';
 			$rand = $this->get_random_bytes(16);
 			$this->_csrf_hash = ($rand === FALSE)
 				? md5(uniqid(mt_rand(), TRUE))
