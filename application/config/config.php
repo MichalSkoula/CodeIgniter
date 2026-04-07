@@ -434,31 +434,6 @@ $config['cookie_samesite'] 	= 'Lax';
 | 'csrf_regenerate' = Regenerate token on every submission
 | 'csrf_exclude_uris' = Array of URIs which ignore CSRF checks
 | 'csrf_protection_test_only' = If TRUE, invalid CSRF is not blocked (test mode)
-| 'csrf_protection_log_invalid_only_exitshop' = If TRUE, log invalid CSRF only for www.exitshop.cz
-*/
-$config['csrf_protection'] = FALSE;
-$config['csrf_protection_test_only'] = FALSE;
-$config['csrf_protection_log_invalid_only_exitshop'] = FALSE;
-$config['csrf_token_name'] = 'csrf_test_name';
-$config['csrf_cookie_name'] = 'csrf_cookie_name';
-$config['csrf_expire'] = 7200;
-$config['csrf_regenerate'] = TRUE;
-$config['csrf_exclude_uris'] = array();
-
-/*
-|--------------------------------------------------------------------------
-| Cross Site Request Forgery
-|--------------------------------------------------------------------------
-| Enables a CSRF cookie token to be set. When set to TRUE, token will be
-| checked on a submitted form. If you are accepting user data, it is strongly
-| recommended CSRF protection be enabled.
-|
-| 'csrf_token_name' = The token name
-| 'csrf_cookie_name' = The cookie name
-| 'csrf_expire' = The number in seconds the token should expire.
-| 'csrf_regenerate' = Regenerate token on every submission
-| 'csrf_exclude_uris' = Array of URIs which ignore CSRF checks
-| 'csrf_protection_test_only' = If TRUE, invalid CSRF is not blocked (test mode)
 | 'csrf_protection_log_invalid_only_base_url_host' = If TRUE, log invalid CSRF only for current base_url host
 */
 $config['csrf_protection'] = FALSE;
