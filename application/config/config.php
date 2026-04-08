@@ -435,6 +435,7 @@ $config['cookie_samesite'] 	= 'Lax';
 | 'csrf_exclude_uris' = Array of URIs which ignore CSRF checks
 | 'csrf_protection_test_only' = If TRUE, invalid CSRF is not blocked (test mode)
 | 'csrf_protection_log_invalid_only_base_url_host' = If TRUE, log invalid CSRF only for current base_url host
+| 'csrf_cookie_samesite' = SameSite attribute for CSRF cookie (Lax or Strict)
 */
 $config['csrf_protection'] = FALSE;
 $config['csrf_protection_test_only'] = FALSE;
@@ -444,6 +445,7 @@ $config['csrf_cookie_name'] = 'csrf_cookie_name';
 $config['csrf_expire'] = 7200;
 $config['csrf_regenerate'] = TRUE;
 $config['csrf_exclude_uris'] = [];
+$config['csrf_cookie_samesite'] = 'Strict';
 
 /*
 |--------------------------------------------------------------------------
