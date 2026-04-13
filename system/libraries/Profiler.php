@@ -87,6 +87,18 @@ class CI_Profiler {
 	 */
 	protected $CI;
 
+	// Compile flags for each section (PHP 8.2 requires explicit declaration)
+	protected $_compile_benchmarks = TRUE;
+	protected $_compile_get = TRUE;
+	protected $_compile_memory_usage = TRUE;
+	protected $_compile_post = TRUE;
+	protected $_compile_uri_string = TRUE;
+	protected $_compile_controller_info = TRUE;
+	protected $_compile_queries = TRUE;
+	protected $_compile_http_headers = TRUE;
+	protected $_compile_session_data = TRUE;
+	protected $_compile_config = TRUE;
+
 	// --------------------------------------------------------------------
 
 	/**
