@@ -423,6 +423,20 @@ class CI_Security {
 		return $this->_csrf_token_name;
 	}
 
+    // --------------------------------------------------------------------
+
+    /**
+	 * Get CSRF Cookie Name
+	 *
+	 * @see		CI_Security::$_csrf_cookie_name
+	 * @return	string	CSRF cookie name
+	 */
+
+    public function get_csrf_cookie_name()
+	{
+	    return $this->_csrf_cookie_name;
+	}
+
 	// --------------------------------------------------------------------
 
 	/**
