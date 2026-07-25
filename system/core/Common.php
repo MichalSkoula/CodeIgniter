@@ -509,6 +509,8 @@ if ( ! function_exists('set_status_header'))
 				205	=> 'Reset Content',
 				206	=> 'Partial Content',
 				207	=> 'Multi-Status',
+				208	=> 'Already Reported',
+				226	=> 'IM Used',
 
 				300	=> 'Multiple Choices',
 				301	=> 'Moved Permanently',
@@ -560,7 +562,8 @@ if ( ! function_exists('set_status_header'))
 			}
 			else
 			{
-				show_error('No status text available. Please check your status code number or supply your own message text.', 500);
+				log_message('error', 'No status text available for status code '.$code);
+				$text = 'Unknown Status';
 			}
 		}
 
