@@ -268,16 +268,34 @@ class CI_Cache_file extends CI_Driver {
 	 */
 	protected function _get($id)
 	{
-		if ( ! is_file($this->_cache_path.$id))
+		$cache_file = $this->_cache_path.$id;
+		clearstatcache(TRUE, $cache_file);
+
+		if ( ! is_file($cache_file))
 		{
 			return FALSE;
 		}
 
-		$data = unserialize(file_get_contents($this->_cache_path.$id));
+		// The file may disappear or be rewritten after the existence check.
+		$contents = @file_get_contents($cache_file);
+		if ($contents === FALSE)
+		{
+			return FALSE;
+		}
+
+		$data = @unserialize($contents);
+		if ( ! is_array($data)
+			OR ! isset($data['time'], $data['ttl'])
+			OR ! is_numeric($data['time'])
+			OR ! is_numeric($data['ttl'])
+			OR ! array_key_exists('data', $data))
+		{
+			return FALSE;
+		}
 
 		if ($data['ttl'] > 0 && time() > $data['time'] + $data['ttl'])
 		{
-			file_exists($this->_cache_path.$id) && unlink($this->_cache_path.$id);
+			file_exists($cache_file) && @unlink($cache_file);
 			return FALSE;
 		}
 
