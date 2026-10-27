@@ -282,6 +282,16 @@ $config['log_append_url'] = FALSE;
 
 /*
 |--------------------------------------------------------------------------
+| Append server hostname to the log message
+|--------------------------------------------------------------------------
+|
+| Useful when several servers write to a shared log directory.
+|
+*/
+$config['log_append_host'] = FALSE;
+
+/*
+|--------------------------------------------------------------------------
 | Error Views Directory Path
 |--------------------------------------------------------------------------
 |

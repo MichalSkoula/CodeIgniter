@@ -126,6 +126,13 @@ class CI_Log {
 	 */
 	protected $_append_url = FALSE;
 
+	/**
+	 * Append server hostname to the log message
+	 *
+	 * @var bool
+	 */
+	protected $_append_host = FALSE;
+
 	// --------------------------------------------------------------------
 
 	/**
@@ -180,6 +187,11 @@ class CI_Log {
 		if (isset($config['log_append_url']) && is_bool($config['log_append_url']))
 		{
 			$this->_append_url = $config['log_append_url'];
+		}
+
+		if (isset($config['log_append_host']) && is_bool($config['log_append_host']))
+		{
+			$this->_append_host = $config['log_append_host'];
 		}
 	}
 
@@ -292,7 +304,7 @@ class CI_Log {
 	 */
 	protected function _format_line($level, $date, $message, $append_url)
 	{
-		return $level.' - '.$date.' --> '.$message.($append_url ? ' URL: '.$append_url.'' : '').PHP_EOL;
+		return $level.' - '.$date.' --> '.$message.($this->_append_host ? ' HOST: '.gethostname() : '').($append_url ? ' URL: '.$append_url.'' : '').PHP_EOL;
 	}
 
 	// --------------------------------------------------------------------
